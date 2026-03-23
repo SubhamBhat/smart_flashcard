@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import NoteInput from '@/components/NoteInput';
 import { generateFlashcards } from '@/app/actions/generate-flashcards';
 import FlashcardDeck from '@/components/FlashcardDeck';
+import { useToast } from '@/hooks/use-toast';
 
 interface Flashcard {
   id: number;
@@ -52,6 +53,7 @@ const DUMMY_FLASHCARDS: Flashcard[] = [
 ];
 
 export default function App() {
+  const { toast } = useToast();
   const [inputText, setInputText] = useState<string>('');
   const [flashcards, setFlashcards] = useState<Flashcard[]>(DUMMY_FLASHCARDS);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -76,9 +78,20 @@ export default function App() {
       const result = await generateFlashcards(inputText);
       setFlashcards(result.flashcards);
       setShowAnimation(true);
-    } catch (err) {
-      setError('Failed to generate flashcards. Please try again.');
+      toast({
+        title: "Success!",
+        description: "Flashcards generated and saved to database.",
+      });
+    } catch (err: any) {
+      console.error('Generation Error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate flashcards. Please try again.';
+      setError(errorMessage);
       setFlashcards([]);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
